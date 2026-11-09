@@ -88,6 +88,41 @@ public class TransactionService {
             account.setBalance(newBalance);
             accountRepository.save(account);
 
+            // Determine payment method and masked funding source
+            String method = (request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank())
+                    ? request.getPaymentMethod().toUpperCase()
+                    : "BANK_TRANSFER";
+
+            String maskedSource = null;
+            if (request.getBankAccountNumber() != null && request.getBankAccountNumber().trim().length() >= 4) {
+                String raw = request.getBankAccountNumber().trim();
+                maskedSource = "XXXXXX" + raw.substring(raw.length() - 4);
+            } else if (request.getUpiId() != null && !request.getUpiId().isBlank()) {
+                maskedSource = request.getUpiId().trim();
+            } else if (request.getCardLast4() != null && !request.getCardLast4().isBlank()) {
+                maskedSource = "CARD-XXXX-" + request.getCardLast4().trim();
+            } else if (request.getBranchOrCdm() != null && !request.getBranchOrCdm().isBlank()) {
+                maskedSource = "CASH-" + request.getBranchOrCdm().trim();
+            }
+
+            StringBuilder descBuilder = new StringBuilder();
+            descBuilder.append("Deposit via ").append(method);
+            if (request.getBankName() != null && !request.getBankName().isBlank()) {
+                descBuilder.append(" (").append(request.getBankName().trim()).append(")");
+            }
+            if (maskedSource != null) {
+                descBuilder.append(" [Source: ").append(maskedSource).append("]");
+            }
+            if (request.getExternalReference() != null && !request.getExternalReference().isBlank()) {
+                descBuilder.append(" [Ref: ").append(request.getExternalReference().trim()).append("]");
+            }
+            if (request.getDescription() != null && !request.getDescription().isBlank()) {
+                descBuilder.append(" - ").append(request.getDescription().trim());
+            } else {
+                descBuilder.append(" - Authorized Deposit Simulation");
+            }
+            String transactionDescription = descBuilder.toString();
+
             // Record transaction
             String ref = generateReferenceNumber("DEP");
             Transaction transaction = Transaction.builder()
@@ -98,7 +133,7 @@ public class TransactionService {
                     .amount(amount)
                     .currency(account.getCurrency())
                     .status(TransactionStatus.SUCCESS)
-                    .description(request.getDescription() != null ? request.getDescription() : "Authorized Sandbox Deposit")
+                    .description(transactionDescription)
                     .completedAt(LocalDateTime.now())
                     .build();
             Transaction savedTxn = transactionRepository.save(transaction);
@@ -416,11 +451,22 @@ public class TransactionService {
     }
 
     public TransactionResponse mapToResponse(Transaction txn) {
+        String sourceAcc = txn.getSourceAccount() != null ? txn.getSourceAccount().getAccountNumber() : null;
+        if (sourceAcc == null && txn.getTransactionType() == TransactionType.DEPOSIT && txn.getDescription() != null) {
+            int srcIdx = txn.getDescription().indexOf("[Source: ");
+            if (srcIdx != -1) {
+                int endIdx = txn.getDescription().indexOf("]", srcIdx);
+                if (endIdx != -1) {
+                    sourceAcc = txn.getDescription().substring(srcIdx + 9, endIdx);
+                }
+            }
+        }
+
         return TransactionResponse.builder()
                 .id(txn.getId())
                 .referenceNumber(txn.getReferenceNumber())
                 .transactionType(txn.getTransactionType().name())
-                .sourceAccountNumber(txn.getSourceAccount() != null ? txn.getSourceAccount().getAccountNumber() : null)
+                .sourceAccountNumber(sourceAcc)
                 .destinationAccountNumber(txn.getDestinationAccount() != null ? txn.getDestinationAccount().getAccountNumber() : null)
                 .amount(txn.getAmount())
                 .currency(txn.getCurrency())

@@ -16,15 +16,36 @@ import java.math.BigDecimal;
 @Builder
 public class DepositRequest {
 
-    @NotNull(message = "Account ID is required")
+    @NotNull(message = "Destination account ID is required")
     private Long accountId;
 
-    @NotNull(message = "Amount is required and must be entered manually")
-    @DecimalMin(value = "0.01", message = "Amount must be strictly greater than zero")
+    @NotNull(message = "Deposit amount is required and must be entered manually")
+    @DecimalMin(value = "0.01", message = "Deposit amount must be strictly greater than zero")
     @Digits(integer = 15, fraction = 2, message = "Amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
-    private String currency;
+    private String currency; // Defaults to "INR"
 
+    private String paymentMethod; // BANK_TRANSFER, UPI, DEBIT_CARD, CREDIT_CARD, CASH_DEPOSIT
+
+    // Bank Details (for Bank Transfer)
+    private String bankName;
+    private String bankAccountNumber;
+    private String ifscCode;
+    private String accountHolderName;
+
+    // UPI Details
+    private String upiId;
+
+    // Card Details (Safe metadata only; NEVER PIN or CVV)
+    private String cardNetwork;
+    private String cardLast4;
+
+    // Cash Deposit Details
+    private String branchOrCdm;
+    private String depositSlipReference;
+
+    // Description / Remarks & External Reference Number
     private String description;
+    private String externalReference;
 }

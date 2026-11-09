@@ -3,8 +3,11 @@ package com.ledgerline.controller;
 import com.ledgerline.dto.AuthResponse;
 import com.ledgerline.dto.LoginRequest;
 import com.ledgerline.dto.RegisterRequest;
+import com.ledgerline.dto.UserResponse;
+import com.ledgerline.entity.User;
 import com.ledgerline.security.SecurityUtils;
 import com.ledgerline.service.AuthService;
+import com.ledgerline.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +26,14 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current authenticated profile", description = "Returns customer profile details including registered mobile number")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        User user = userService.getCurrentUser();
+        return ResponseEntity.ok(userService.mapToResponse(user));
+    }
 
     @PostMapping("/register")
     @Operation(summary = "Register a new customer", description = "Creates a new ACCOUNT_HOLDER user account and returns JWT tokens")
