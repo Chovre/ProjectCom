@@ -31,8 +31,11 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        // Priority 1: Check cloud environment variables directly (Render / Heroku / Railway)
+        // Priority 1: Check cloud environment variables directly (Supabase / Render / Heroku / Railway)
         String rawUrl = System.getenv("SPRING_DATASOURCE_URL");
+        if (rawUrl == null || rawUrl.isBlank()) {
+            rawUrl = System.getenv("DIRECT_URL");
+        }
         if (rawUrl == null || rawUrl.isBlank()) {
             rawUrl = System.getenv("DATABASE_URL");
         }
@@ -59,6 +62,16 @@ public class DataSourceConfig {
                 String path = uri.getPath();
                 String query = uri.getQuery();
 
+                // Supabase: pooler on port 6543 (transaction mode) breaks Flyway advisory locks and prepared statements.
+                // Automatically switch to session pooler port 5432 if Supabase pooler is detected.
+                if (host != null && host.contains("supabase.com") && port == 6543) {
+                    port = 5432;
+                    if (query != null) {
+                        query = query.replace("pgbouncer=true", "").replace("&&", "&").replaceAll("^&|&$", "");
+                    }
+                    log.info("Adjusted Supabase connection from pooler port 6543 to session pooler port 5432 for Flyway migration compatibility.");
+                }
+
                 finalUrl = "jdbc:postgresql://" + host + ":" + port + path;
                 if (query != null && !query.isBlank()) {
                     finalUrl += "?" + query;
@@ -84,6 +97,16 @@ public class DataSourceConfig {
                 String path = uri.getPath();
                 String query = uri.getQuery();
 
+                // Supabase: pooler on port 6543 (transaction mode) breaks Flyway advisory locks and prepared statements.
+                // Automatically switch to session pooler port 5432 if Supabase pooler is detected.
+                if (host != null && host.contains("supabase.com") && port == 6543) {
+                    port = 5432;
+                    if (query != null) {
+                        query = query.replace("pgbouncer=true", "").replace("&&", "&").replaceAll("^&|&$", "");
+                    }
+                    log.info("Adjusted Supabase connection from pooler port 6543 to session pooler port 5432 for Flyway migration compatibility.");
+                }
+
                 finalUrl = "jdbc:postgresql://" + host + ":" + port + path;
                 if (query != null && !query.isBlank()) {
                     finalUrl += "?" + query;
@@ -99,6 +122,11 @@ public class DataSourceConfig {
             } catch (Exception e) {
                 log.warn("Failed to parse embedded credentials in JDBC URL: {}", e.getMessage());
             }
+        }
+
+        // Ensure SSL is required for Supabase and cloud databases
+        if (finalUrl != null && finalUrl.contains("supabase.com") && !finalUrl.contains("sslmode=")) {
+            finalUrl += (finalUrl.contains("?") ? "&" : "?") + "sslmode=require";
         }
 
         // Allow explicit env vars for user & password to override
