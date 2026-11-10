@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class DataSourceConfig {
@@ -79,9 +81,9 @@ public class DataSourceConfig {
 
                 if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
                     String[] userParts = uri.getUserInfo().split(":", 2);
-                    username = userParts[0];
+                    username = URLDecoder.decode(userParts[0], StandardCharsets.UTF_8);
                     if (userParts.length > 1) {
-                        password = userParts[1];
+                        password = URLDecoder.decode(userParts[1], StandardCharsets.UTF_8);
                     }
                 }
                 log.info("Transformed PaaS database URI to JDBC URL: jdbc:postgresql://{}:{}{}", host, port, path);
@@ -114,9 +116,9 @@ public class DataSourceConfig {
 
                 if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
                     String[] userParts = uri.getUserInfo().split(":", 2);
-                    username = userParts[0];
+                    username = URLDecoder.decode(userParts[0], StandardCharsets.UTF_8);
                     if (userParts.length > 1) {
-                        password = userParts[1];
+                        password = URLDecoder.decode(userParts[1], StandardCharsets.UTF_8);
                     }
                 }
             } catch (Exception e) {
