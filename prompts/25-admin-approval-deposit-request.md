@@ -22,3 +22,4 @@ Implement an end-to-end deposit request and administrator approval workflow ensu
 - **Section H**: REST API Endpoints (`/api/deposits/**` and `/api/admin/deposits/**`)
 - **Section I**: Financial Security & Idempotency Rules
 - **Section J**: Acceptance Testing Invariants
+

@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AuthLayout from '../../layouts/AuthLayout';
-import { Lock, Mail, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [serverWarming, setServerWarming] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,14 +23,9 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    setServerWarming(false);
-    const warmTimer = setTimeout(() => {
-      setServerWarming(true);
-    }, 3000);
 
     try {
       const user = await login(email, password);
-      clearTimeout(warmTimer);
       toast.success('Welcome back, ' + (user.fullName || user.username || 'User') + '!');
 
       // Redirect by role
@@ -44,14 +38,11 @@ export default function LoginPage() {
         navigate('/customer/dashboard', { replace: true });
       }
     } catch (err) {
-      clearTimeout(warmTimer);
       const msg = err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
       setError(msg);
       toast.error(msg);
     } finally {
-      clearTimeout(warmTimer);
       setLoading(false);
-      setServerWarming(false);
     }
   };
 
@@ -67,16 +58,6 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Sign In to LedgerLine</h2>
         <p className="text-sm text-gray-500 mt-1">Access your secure financial transactions and ledger</p>
       </div>
-
-      {serverWarming && (
-        <div className="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5 text-xs text-amber-800 animate-pulse">
-          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-amber-900">Connecting to cloud server...</p>
-            <p className="mt-0.5 text-amber-700">On Render's free tier, the backend spins down when idle and takes 30–50 seconds to wake up. Please wait, authenticating now...</p>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
@@ -119,10 +100,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 mt-2"
+          className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 mt-2 disabled:opacity-75 disabled:cursor-wait"
         >
           {loading ? (
-            'Authenticating...'
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Signing in...
+            </>
           ) : (
             <>
               Sign In <ArrowRight className="w-4 h-4" />
@@ -170,4 +154,3 @@ export default function LoginPage() {
     </AuthLayout>
   );
 }
-

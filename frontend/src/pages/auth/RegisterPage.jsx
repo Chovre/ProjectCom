@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import endpoints from '../../api/endpoints';
 import AuthLayout from '../../layouts/AuthLayout';
-import { Lock, Mail, User, Phone, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, User, Phone, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -15,7 +15,6 @@ export default function RegisterPage() {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
-  const [serverWarming, setServerWarming] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -41,10 +40,6 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    setServerWarming(false);
-    const warmTimer = setTimeout(() => {
-      setServerWarming(true);
-    }, 3000);
 
     try {
       await axiosInstance.post(endpoints.auth.register, {
@@ -54,40 +49,26 @@ export default function RegisterPage() {
         phone: formData.phone || undefined,
       });
 
-      clearTimeout(warmTimer);
       toast.success('Registration successful! Please sign in.');
       navigate('/login');
     } catch (err) {
-      clearTimeout(warmTimer);
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       setError(msg);
       toast.error(msg);
     } finally {
-      clearTimeout(warmTimer);
       setLoading(false);
-      setServerWarming(false);
     }
   };
 
   return (
     <AuthLayout>
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create Customer Account</h2>
-        <p className="text-sm text-gray-500 mt-1">Get started with secure double-entry financial banking</p>
+        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create an Account</h2>
+        <p className="text-sm text-gray-500 mt-1">Join LedgerLine for secure, audited financial management</p>
       </div>
 
-      {serverWarming && (
-        <div className="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5 text-xs text-amber-800 animate-pulse">
-          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-amber-900">Connecting to cloud server...</p>
-            <p className="mt-0.5 text-amber-700">On Render's free tier, the backend spins down when idle and takes 30–50 seconds to wake up. Please wait, creating your account...</p>
-          </div>
-        </div>
-      )}
-
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-xs text-red-700">
+        <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
           <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -95,7 +76,7 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-3.5">
         <div>
-          <label className="label-text">Full Name</label>
+          <label className="label-text">Full Legal Name</label>
           <div className="relative">
             <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
             <input
@@ -103,7 +84,7 @@ export default function RegisterPage() {
               name="fullName"
               value={formData.fullName}
               onChange={handleChange}
-              placeholder="Rahul Sharma"
+              placeholder="John Doe"
               className="input-field pl-10 text-sm"
               required
             />
@@ -119,7 +100,7 @@ export default function RegisterPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="rahul@example.com"
+              placeholder="name@example.com"
               className="input-field pl-10 text-sm"
               required
             />
@@ -127,7 +108,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="label-text">Phone Number (Optional)</label>
+          <label className="label-text">Mobile Number (Optional)</label>
           <div className="relative">
             <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
             <input
@@ -135,7 +116,7 @@ export default function RegisterPage() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="9876543210"
+              placeholder="+91 98765 43210"
               className="input-field pl-10 text-sm"
             />
           </div>
@@ -176,10 +157,13 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 mt-2"
+          className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 mt-4 disabled:opacity-75 disabled:cursor-wait"
         >
           {loading ? (
-            'Creating Account...'
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Creating account...
+            </>
           ) : (
             <>
               Register Account <ArrowRight className="w-4 h-4" />
@@ -188,13 +172,12 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <div className="mt-5 text-center text-xs text-gray-500">
+      <div className="mt-6 text-center text-xs text-gray-500">
         Already have an account?{' '}
         <Link to="/login" className="text-navy-600 font-semibold hover:underline">
-          Sign in
+          Sign In
         </Link>
       </div>
     </AuthLayout>
   );
 }
-

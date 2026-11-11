@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
+import axiosInstance from './api/axiosInstance';
+import endpoints from './api/endpoints';
 
 // Public Pages
 import LandingPage from './pages/auth/LandingPage';
@@ -39,6 +41,11 @@ import AuditorAuditPage from './pages/auditor/AuditorAuditPage';
 import ReconciliationPage from './pages/auditor/ReconciliationPage';
 
 export default function App() {
+  useEffect(() => {
+    // Silently pre-warm backend connection on app load so login responds in seconds
+    axiosInstance.get(endpoints.health.check).catch(() => {});
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
