@@ -30,3 +30,4 @@ public interface DepositRequestRepository extends JpaRepository<DepositRequest, 
     @Query("SELECT d FROM DepositRequest d WHERE d.id = :id")
     Optional<DepositRequest> findByIdForUpdate(@Param("id") Long id);
 }
+

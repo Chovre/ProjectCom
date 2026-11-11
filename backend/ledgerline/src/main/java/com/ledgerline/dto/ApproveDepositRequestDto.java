@@ -10,3 +10,4 @@ public class ApproveDepositRequestDto {
 
     private String adminNotes;
 }
+

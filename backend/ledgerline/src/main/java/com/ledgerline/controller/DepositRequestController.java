@@ -55,3 +55,4 @@ public class DepositRequestController {
         return ResponseEntity.ok(depositRequestService.getRequestById(id, user.getId(), isAdmin));
     }
 }
+

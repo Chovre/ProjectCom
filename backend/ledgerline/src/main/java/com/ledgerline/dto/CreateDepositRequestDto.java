@@ -37,3 +37,4 @@ public class CreateDepositRequestDto {
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 }
+

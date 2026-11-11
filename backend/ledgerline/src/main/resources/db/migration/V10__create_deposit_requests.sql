@@ -29,3 +29,4 @@ CREATE INDEX idx_deposit_requests_user ON deposit_requests(user_id);
 CREATE INDEX idx_deposit_requests_account ON deposit_requests(account_id);
 CREATE INDEX idx_deposit_requests_status ON deposit_requests(status);
 CREATE INDEX idx_deposit_requests_submitted ON deposit_requests(submitted_at);
+

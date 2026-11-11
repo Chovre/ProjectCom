@@ -6,7 +6,7 @@ services:
     name: ledgerline-backend
     runtime: docker
     plan: free
-    region: oregon
+    region: singapore
     dockerfilePath: ./backend/ledgerline/Dockerfile
     dockerContext: ./backend/ledgerline
     healthCheckPath: /api/health
@@ -14,13 +14,15 @@ services:
       - key: PORT
         value: 8081
       - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: ledgerline-db
-          property: connectionString
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: APP_CORS_ALLOWED_ORIGINS
-        value: https://ledgerline-frontend.onrender.com,http://localhost:5173
+        value: https://*.onrender.com,http://localhost:5173
 
   # =========================================================================
   # 2. React Vite Frontend Static Site
@@ -29,7 +31,7 @@ services:
     name: ledgerline-frontend
     runtime: static
     plan: free
-    region: oregon
+    region: singapore
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
@@ -43,14 +45,3 @@ services:
           type: web
           name: ledgerline-backend
           envVarKey: RENDER_EXTERNAL_URL
-
-# =========================================================================
-# 3. PostgreSQL Database
-# =========================================================================
-databases:
-  - name: ledgerline-db
-    plan: free
-    region: oregon
-    databaseName: ledgerline_db
-    user: ledgerline_user
-

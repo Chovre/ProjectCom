@@ -14,3 +14,4 @@ public class RejectDepositRequestDto {
     @Size(min = 3, max = 500, message = "Rejection reason must be between 3 and 500 characters")
     private String rejectionReason;
 }
+

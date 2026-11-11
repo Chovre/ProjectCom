@@ -75,3 +75,4 @@ public class AdminDepositController {
         return ResponseEntity.ok(depositRequestService.rejectDepositRequest(id, admin.getId(), dto, ip));
     }
 }
+

@@ -6,3 +6,4 @@ public enum DepositRequestStatus {
     REJECTED,
     FAILED
 }
+
