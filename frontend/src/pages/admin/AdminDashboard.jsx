@@ -15,6 +15,7 @@ import {
   ArrowRight,
   TrendingUp,
   Scale,
+  ArrowDownToLine,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
@@ -58,7 +59,13 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">System Administration</h1>
           <p className="text-sm text-gray-500">Live platform metrics, user access controls, and settlement monitoring</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/admin/deposits"
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+          >
+            <ArrowDownToLine className="w-4 h-4" /> Deposit Requests ({stats?.pendingDeposits || 0})
+          </Link>
           <Link
             to="/admin/applications"
             className="btn-primary text-xs py-2.5 px-4 inline-flex items-center gap-1.5 shadow-sm"

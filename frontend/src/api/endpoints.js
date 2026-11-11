@@ -22,6 +22,16 @@ const endpoints = {
     getByReference: (reference) => `/transactions/${reference}`,
     dashboard: '/transactions/dashboard',
   },
+  deposits: {
+    createRequest: '/deposits/requests',
+    myRequests: '/deposits/my-requests',
+    getRequest: (id) => `/deposits/requests/${id}`,
+    adminPending: '/admin/deposits/pending',
+    adminAll: '/admin/deposits',
+    adminGetById: (id) => `/admin/deposits/${id}`,
+    adminApprove: (id) => `/admin/deposits/${id}/approve`,
+    adminReject: (id) => `/admin/deposits/${id}/reject`,
+  },
   ledger: {
     byAccount: (accountId) => `/ledger/account/${accountId}`,
     reconciliation: '/admin/ledger/reconciliation',

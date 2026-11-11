@@ -24,6 +24,7 @@ import TransactionDetailPage from './pages/customer/TransactionDetailPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminDepositRequestsPage from './pages/admin/AdminDepositRequestsPage';
 import UserManagement from './pages/admin/UserManagement';
 import AdminAccountsPage from './pages/admin/AdminAccountsPage';
 import ApplicationsPage from './pages/admin/ApplicationsPage';
@@ -80,6 +81,7 @@ export default function App() {
           >
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="deposits" element={<AdminDepositRequestsPage />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="accounts" element={<AdminAccountsPage />} />
             <Route path="applications" element={<ApplicationsPage />} />

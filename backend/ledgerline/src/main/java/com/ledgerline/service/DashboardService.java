@@ -22,6 +22,7 @@ public class DashboardService {
     private final AccountApplicationRepository applicationRepository;
     private final TransactionRepository transactionRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
+    private final DepositRequestRepository depositRequestRepository;
     private final LedgerService ledgerService;
     private final AccountService accountService;
     private final TransactionService transactionService;
@@ -32,6 +33,7 @@ public class DashboardService {
         long totalAccounts = accountRepository.count();
         long activeAccounts = accountRepository.countByStatus(AccountStatus.ACTIVE);
         long pendingApplications = applicationRepository.countByStatus(ApplicationStatus.PENDING);
+        long pendingDeposits = depositRequestRepository.countByStatus(DepositRequestStatus.PENDING);
         long totalTransactions = transactionRepository.count();
         long successfulTransactions = transactionRepository.countByStatus(TransactionStatus.SUCCESS);
         long failedTransactions = transactionRepository.countByStatus(TransactionStatus.FAILED);
@@ -45,6 +47,7 @@ public class DashboardService {
                 .totalAccounts(totalAccounts)
                 .activeAccounts(activeAccounts)
                 .pendingApplications(pendingApplications)
+                .pendingDeposits(pendingDeposits)
                 .totalTransactions(totalTransactions)
                 .successfulTransactions(successfulTransactions)
                 .failedTransactions(failedTransactions)

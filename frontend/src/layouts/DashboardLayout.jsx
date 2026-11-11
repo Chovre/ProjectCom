@@ -37,6 +37,7 @@ const customerNav = [
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/deposits', label: 'Deposit Requests', icon: ArrowDownToLine },
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/accounts', label: 'Accounts', icon: CreditCard },
   { to: '/admin/applications', label: 'Applications', icon: ClipboardList },

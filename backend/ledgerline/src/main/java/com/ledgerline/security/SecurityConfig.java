@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auditor/**").hasRole("AUDITOR")
                         .requestMatchers("/api/accounts/**").authenticated()
                         .requestMatchers("/api/transactions/**").authenticated()
+                        .requestMatchers("/api/deposits/**").authenticated()
                         .requestMatchers("/api/ledger/**").authenticated()
                         .requestMatchers("/api/audit/**").authenticated()
                         .anyRequest().authenticated()

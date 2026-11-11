@@ -17,6 +17,7 @@ public class DashboardStatsResponse {
     private long totalAccounts;
     private long activeAccounts;
     private long pendingApplications;
+    private long pendingDeposits;
     private long totalTransactions;
     private long successfulTransactions;
     private long failedTransactions;
