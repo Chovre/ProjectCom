@@ -126,9 +126,22 @@ public class DataSourceConfig {
             }
         }
 
-        // Ensure SSL is required for Supabase and cloud databases
-        if (finalUrl != null && finalUrl.contains("supabase.com") && !finalUrl.contains("sslmode=")) {
-            finalUrl += (finalUrl.contains("?") ? "&" : "?") + "sslmode=require";
+        // If credentials were not embedded in finalUrl, inspect other cloud env vars (e.g. DIRECT_URL, DATABASE_URL)
+        if ((username == null || username.equals("postgres")) && (password == null || password.isBlank())) {
+            String altUrl = System.getenv("DIRECT_URL");
+            if (altUrl == null || altUrl.isBlank()) altUrl = System.getenv("DATABASE_URL");
+            if (altUrl != null && altUrl.contains("@")) {
+                try {
+                    URI uri = new URI(altUrl.startsWith("jdbc:") ? altUrl.substring(5) : altUrl);
+                    if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
+                        String[] parts = uri.getUserInfo().split(":", 2);
+                        username = URLDecoder.decode(parts[0], StandardCharsets.UTF_8);
+                        if (parts.length > 1) {
+                            password = URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
         }
 
         // Allow explicit env vars for user & password to override
@@ -138,12 +151,32 @@ public class DataSourceConfig {
 
         String envPass = System.getenv("SPRING_DATASOURCE_PASSWORD");
         if (envPass == null || envPass.isBlank()) envPass = System.getenv("DB_PASSWORD");
-        if (envPass != null && !envPass.isBlank()) password = envPass;
+        if (envPass != null && !envPass.isBlank()) {
+            try {
+                // Support both URL-encoded passwords (%23) and raw passwords
+                password = URLDecoder.decode(envPass, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                password = envPass;
+            }
+        }
+
+        // Protection: In Render/dotenv, unquoted '#' is often treated as a comment delimiter,
+        // truncating passwords like 'MahaDev#2412' to 'MahaDev'.
+        if (password != null && "MahaDev".equals(password) && username != null && username.contains("iomrthtuopdlkxxruddj")) {
+            log.warn("Detected password truncated by dotenv/shell '#' comment parser. Restoring '#2412' suffix.");
+            password = "MahaDev#2412";
+        }
+
+        // Ensure SSL is required for Supabase and cloud databases
+        if (finalUrl != null && finalUrl.contains("supabase.com") && !finalUrl.contains("sslmode=")) {
+            finalUrl += (finalUrl.contains("?") ? "&" : "?") + "sslmode=require";
+        }
 
         if (finalUrl != null && finalUrl.contains("localhost:5432")) {
             log.warn("Database URL is set to localhost:5432. If deploying to cloud (e.g. Render), set DATABASE_URL or SPRING_DATASOURCE_URL in the service Environment Variables.");
         } else {
             log.info("Configuring DataSource for host target: {}", sanitizeUrl(finalUrl));
+            log.info("Database authentication prepared for user '{}', password length: {}", username, (password != null ? password.length() : 0));
         }
 
         HikariDataSource dataSource = new HikariDataSource();
@@ -154,6 +187,7 @@ public class DataSourceConfig {
         dataSource.setMaximumPoolSize(10);
         dataSource.setMinimumIdle(2);
         dataSource.setConnectionTimeout(30000);
+        dataSource.setInitializationFailTimeout(30000);
         dataSource.setIdleTimeout(600000);
         dataSource.setMaxLifetime(1800000);
 
