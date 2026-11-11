@@ -15,6 +15,7 @@ export default function RegisterPage() {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
+  const [serverWarming, setServerWarming] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -40,6 +41,11 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    setServerWarming(false);
+    const warmTimer = setTimeout(() => {
+      setServerWarming(true);
+    }, 3000);
+
     try {
       await axiosInstance.post(endpoints.auth.register, {
         fullName: formData.fullName,
@@ -48,14 +54,18 @@ export default function RegisterPage() {
         phone: formData.phone || undefined,
       });
 
+      clearTimeout(warmTimer);
       toast.success('Registration successful! Please sign in.');
       navigate('/login');
     } catch (err) {
+      clearTimeout(warmTimer);
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       setError(msg);
       toast.error(msg);
     } finally {
+      clearTimeout(warmTimer);
       setLoading(false);
+      setServerWarming(false);
     }
   };
 
@@ -65,6 +75,16 @@ export default function RegisterPage() {
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create Customer Account</h2>
         <p className="text-sm text-gray-500 mt-1">Get started with secure double-entry financial banking</p>
       </div>
+
+      {serverWarming && (
+        <div className="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5 text-xs text-amber-800 animate-pulse">
+          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-amber-900">Connecting to cloud server...</p>
+            <p className="mt-0.5 text-amber-700">On Render's free tier, the backend spins down when idle and takes 30–50 seconds to wake up. Please wait, creating your account...</p>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-xs text-red-700">

@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 90000, // 90 seconds to handle Render free tier cold starts
 });
 
 // Request interceptor — attach Bearer token
@@ -43,6 +43,11 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Format friendly message for cold-start timeouts
+    if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
+      error.message = 'The cloud server took longer than expected to wake up from idle mode. Please click again — it will connect shortly!';
+    }
+
     const originalRequest = error.config;
 
     // If the error is not 401 or the request has already been retried, reject
