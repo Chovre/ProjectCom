@@ -102,10 +102,28 @@ export function AuthProvider({ children }) {
     return userInfo;
   }, []);
 
-  // ── Register ──
+  // ── Register with Automatic Session Hydration ──
   const register = useCallback(async (registrationData) => {
     const response = await axiosInstance.post(endpoints.auth.register, registrationData);
-    return response.data;
+    const data = response.data;
+
+    const accessToken = data.accessToken || data.token;
+    const refreshToken = data.refreshToken;
+
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+      const userInfo = data.user || extractUserFromToken(accessToken);
+      localStorage.setItem('user', JSON.stringify(userInfo));
+
+      setToken(accessToken);
+      setUser(userInfo);
+      return userInfo;
+    }
+
+    return data;
   }, []);
 
   // ── Logout ──

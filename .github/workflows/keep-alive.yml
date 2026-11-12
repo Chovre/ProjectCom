@@ -1,0 +1,22 @@
+name: Render Backend 24/7 Keep-Alive
+
+on:
+  schedule:
+    # Trigger every 10 minutes to prevent Render free tier from going to sleep
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    name: Ping Cloud Backend Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive HTTP Request
+        run: |
+          echo "Pinging LedgerLine Render backend to maintain 24/7 warm state..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://projectcom-3.onrender.com/api/health)
+          echo "Backend returned HTTP $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Retrying health ping..."
+            curl -s https://projectcom-3.onrender.com/api/health || true
+          fi

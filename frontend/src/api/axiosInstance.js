@@ -43,12 +43,30 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
+    // Auto-retry once on network/timeout errors (handles cloud wake-up transition seamlessly)
+    if (
+      originalRequest &&
+      !originalRequest._hasRetried &&
+      (error.code === 'ECONNABORTED' ||
+        error.message?.toLowerCase().includes('timeout') ||
+        error.message?.toLowerCase().includes('network error') ||
+        !error.response)
+    ) {
+      originalRequest._hasRetried = true;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        return axiosInstance(originalRequest);
+      } catch (retryError) {
+        error = retryError;
+      }
+    }
+
     // Format friendly message for cold-start timeouts
     if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
       error.message = 'The cloud server took longer than expected to wake up from idle mode. Please click again — it will connect shortly!';
     }
-
-    const originalRequest = error.config;
 
     // If the error is not 401 or the request has already been retried, reject
     if (!error.response || error.response.status !== 401 || originalRequest._retry) {

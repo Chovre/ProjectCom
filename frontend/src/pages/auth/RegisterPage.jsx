@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axiosInstance from '../../api/axiosInstance';
-import endpoints from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 import AuthLayout from '../../layouts/AuthLayout';
 import { Lock, Mail, User, Phone, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,6 +15,7 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -42,15 +42,15 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await axiosInstance.post(endpoints.auth.register, {
+      const user = await register({
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         phone: formData.phone || undefined,
       });
 
-      toast.success('Registration successful! Please sign in.');
-      navigate('/login');
+      toast.success('Account created! Welcome, ' + (user?.fullName || 'Customer') + '!');
+      navigate('/customer/dashboard', { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       setError(msg);
@@ -162,11 +162,11 @@ export default function RegisterPage() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Creating account...
+              Creating account & logging in...
             </>
           ) : (
             <>
-              Register Account <ArrowRight className="w-4 h-4" />
+              Register & Sign In <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
